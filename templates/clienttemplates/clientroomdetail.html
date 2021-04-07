@@ -1,0 +1,97 @@
+{% extends 'clienttemplates/clientbase.html' %}
+{% block title %}{{room.room_type}} room at {{room.hotel.name}}{% endblock %}
+
+{% block content %}
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card p-3">
+            <h4>{{room.room_type}} room at {{room.hotel.name}}</h4>
+            <hr>
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="row">
+                        <div class="col-md-7">
+                            <img src="{{room.image.url}}" class="img-fluid"
+                                style="width: 100%;height: 300px; object-fit: contain;" alt="">
+                        </div>
+                        <div class="col-md-5">
+                            <table class="table table-bordered">
+                                <tbody>
+                                    <tr>
+                                        <th>Hotel: </th>
+                                        <td>{{room.hotel}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Location: </th>
+                                        <td>{{room.hotel.address}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Room Code: </th>
+                                        <td>{{room.room_code}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Room Type: </th>
+                                        <td>{{room.room_type}}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Price: </th>
+                                        <td>Rs. {{room.price}}/-</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Total Views: </th>
+                                        <td>{{room.view_count}} views</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            {{room.description|safe}}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 bg-info p-3">
+                    {% if request.user.customer %}
+                    <form action="" method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <label for="">Total Persons</label>
+                                {{roombookingform.total_persons}}
+                            </div>
+                            <div class="col-md-6">
+                                <label for="">Duration in days</label>
+                                {{roombookingform.booking_for_in_days}}
+                            </div>
+                            <div class="col-md-12 mt-1">
+                                <label for="">Estimated arrival date</label>
+                                {{roombookingform.estimated_arrival_time}}
+                            </div>
+                            <div class="col-md-12 mt-1">
+                                <label for="">Special Message</label>
+                                {{roombookingform.message}}
+                            </div>
+                            <div class="col-md-12 mt-1">
+                                <label for="">Payment Method</label>
+                                {{roombookingform.payment_method}}
+                            </div>
+                        </div>
+                        <hr>
+                        <button class="btn btn-outline-primary w-100">Book this Room</button>
+                    </form>
+                    {% else %}
+                    <div class="text-center">
+
+                        <h5>You need to login to book room.</h5>
+                        <p>If you already have an account</p>
+                        <a class="text-white" style="font-weight: bold;" href="{% url 'hbsapp:customerlogin' %}?next={{request.path}}">Login as a Customer</a>
+                        <p>If you don't have an account</p>
+                        <a class="text-white" style="font-weight: bold;" href="{% url 'hbsapp:customerlogin' %}?next={{request.path}}">Register as a Customer</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

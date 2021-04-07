@@ -1,0 +1,38 @@
+{% extends 'admintemplates/adminbase.html' %}
+{% block title %}Hotel List{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <a href="{% url 'hbsapp:adminhotelcreate' %}">Add Hotel</a>
+        <div class="table">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>SN</th>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Contact</th>
+                        <th>Email</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for hotel in hotellist %}
+                    <tr>
+                        <td>{{forloop.counter}}</td>
+                        <td>{{hotel.name}}</td>
+                        <td>{{hotel.address}}</td>
+                        <td>{{hotel.contact}}</td>
+                        <td>{{hotel.email}}</td>
+                        <td>
+                            <a href="{% url 'hbsapp:adminhotelupdate' hotel.id %}">Update</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
