@@ -93,12 +93,12 @@ RATING = (
     (1, "I do not recommend this room"),
 )
 class RoomBooking(TimeStamp):
-    hotel_room = models.ForeignKey(Hotel, on_delete=models.RESTRICT)
+    hotel_room = models.ForeignKey(HotelRoom, on_delete=models.RESTRICT)
     customer = models.ForeignKey(Customer, on_delete=models.RESTRICT)
 
     total_persons = models.PositiveIntegerField(default=1)
-    estimated_arrival_time = models.DateTimeField()
-    booking_for_in_days = models.PositiveIntegerField(default=1)
+    booking_starts = models.DateField()
+    booking_ends = models.DateField()
     message = models.TextField(null=True, blank=True)
 
     booking_status = models.CharField(max_length=50, choices=BOOKING_STATUS)

@@ -12,9 +12,12 @@ urlpatterns = [
     path("login/", CustomerLoginView.as_view(), name="customerlogin"),
     path("logout/", CustomerLogoutView.as_view(), name="customerlogout"),
 
-    path("room-<room_code>-<int:pk>-book/",
+    path("room-<int:pk>-check/",
+         CustomerRoomCheckView.as_view(), name="customerroomcheck"),
+    path("room-<int:pk>-book/",
          CustomerRoomBookingView.as_view(), name="customerroombooking"),
-     path("customer-profile/",
+
+    path("customer-profile/",
          CustomerProfileView.as_view(), name="customerprofile"),
 
     # admin urls
@@ -28,4 +31,9 @@ urlpatterns = [
          AdminHotelCreateView.as_view(), name="adminhotelcreate"),
     path("system-admin/hotel-<int:pk>-update/",
          AdminHotelUpdateView.as_view(), name="adminhotelupdate"),
+
+    path("system-admin/room-list/",
+         AdminRoomListView.as_view(), name="adminroomlist"),
+    path("system-admin/room-create/",
+         AdminRoomCreateView.as_view(), name="adminroomcreate"),
 ]

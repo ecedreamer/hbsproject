@@ -2,7 +2,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.views.generic import View
+from django.http import JsonResponse
 from django.contrib import messages
+from django.utils import timezone
+from datetime import date
 from .forms import *
 
 
@@ -125,8 +128,51 @@ class CustomerRequiredMixin(object):
         return super(CustomerRequiredMixin, self).dispatch(request, *args, **kwargs)
 
 
+class CustomerRoomCheckView(ClientMixin, View):
+    def get(self, request, *args, **kwargs):
+        room = HotelRoom.objects.get(id=self.kwargs.get("pk"))
+        booking_starts = request.GET.get("date")
+        booking_for = date.fromisoformat(booking_starts)
+        if booking_for >= timezone.now().date() :
+            rb = RoomBooking.objects.filter(hotel_room=room, booking_starts__lte=booking_starts, booking_ends__gte=booking_starts)
+            if rb.exists():
+                room_status = "unavailable"
+            else:
+                room_status = "available"
+        else:
+            room_status = "error"
+        resp = {
+            "status": room_status
+        }
+        return JsonResponse(resp)
+
+
+
 class CustomerRoomBookingView(CustomerRequiredMixin, ClientMixin, View):
-    pass
+    def post(self, request, *args, **kwargs):
+        try:
+
+            room = HotelRoom.objects.get(id=self.kwargs.get("pk"))
+            context = self.context
+            booking_form = RoomBookingForm(request.POST)
+            if booking_form.is_valid():
+                print(booking_form.cleaned_data)
+                booking = booking_form.save(commit=False)
+                booking.hotel_room = room
+                booking.customer = request.user.customer
+                booking.booking_status = "Pending"
+                stay_days = booking_form.cleaned_data.get("booking_ends") - booking_form.cleaned_data.get("booking_starts")
+                stay_days = 1 if stay_days.days == 0 else stay_days.days
+                booking.amount = room.price * booking_form.cleaned_data.get("total_persons") * stay_days
+                booking.save()
+                return render(request, "clienttemplates/customerroombooking.html", context)
+            else:
+                messages.error(request, "Something went wrong..")
+                return redirect("hbsapp:clientroomdetail", room_code=room.room_code, pk=room.id)
+        except Exception as e:
+            messages.error(request, "Room not found..")
+            print(e)
+            return redirect("hbsapp:clienthome")
 
 
 class CustomerProfileView(CustomerRequiredMixin, ClientMixin, View):
@@ -247,3 +293,25 @@ class AdminHotelUpdateView(AdminRequiredMixin, View):
             print(e)
             messages.error(request, "Can not save the data.")
         return redirect("hbsapp:adminhotellist")
+
+
+class AdminRoomListView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        context["roomlist"] = HotelRoom.objects.order_by("-id")
+        return render(request, "admintemplates/adminroomlist.html", context)
+
+
+class AdminRoomCreateView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        context["roomform"] = HotelRoomForm
+        return render(request, "admintemplates/adminroomcreate.html", context)
+
+    def post(self, request, *args, **kwargs):
+        room_form = HotelRoomForm(request.POST, request.FILES)
+        if room_form.is_valid():
+            room = room_form.save()
+        else:
+            messages.error(request, "Something went wrong")
+        return redirect("hbsapp:adminroomlist")

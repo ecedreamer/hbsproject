@@ -1,6 +1,14 @@
 {% extends 'clienttemplates/clientbase.html' %}
 {% block title %}{{room.room_type}} room at {{room.hotel.name}}{% endblock %}
 
+
+{% block css %}
+<style>
+    form label {
+        font-size: 12px;
+    }
+</style>
+{% endblock %}
 {% block content %}
 <div class="row mt-3">
     <div class="col-md-12">
@@ -52,41 +60,47 @@
 
                 <div class="col-md-4 bg-info p-3">
                     {% if request.user.customer %}
-                    <form action="" method="POST">
+                    <h6 class="text-white">Room Booking Form <br><small
+                            style="font-size: 11px; color: rgb(143, 3, 3);">fields marked with * are required
+                            fields.</small></h6>
+                    <hr>
+                    <form action="{% url 'hbsapp:customerroombooking' room.id %}" method="POST">
                         {% csrf_token %}
                         <div class="row">
-                            <div class="col-md-6">
-                                <label for="">Total Persons</label>
+                            <div class="col-md-12">
+                                <label for="">Total Persons <span class="text-danger">*</span></label>
                                 {{roombookingform.total_persons}}
                             </div>
-                            <div class="col-md-6">
-                                <label for="">Duration in days</label>
-                                {{roombookingform.booking_for_in_days}}
+                            <div class="col-md-6 mt-1">
+                                <label for="">Booking Date<span class="text-danger">*</span></label>
+                                {{roombookingform.booking_starts}}
+                            </div>
+                            <div class="col-md-6 mt-1">
+                                <label for="">To <span class="text-danger">*</span></label>
+                                {{roombookingform.booking_ends}}
                             </div>
                             <div class="col-md-12 mt-1">
-                                <label for="">Estimated arrival date</label>
-                                {{roombookingform.estimated_arrival_time}}
-                            </div>
-                            <div class="col-md-12 mt-1">
-                                <label for="">Special Message</label>
+                                <label for=""></label>
                                 {{roombookingform.message}}
                             </div>
                             <div class="col-md-12 mt-1">
-                                <label for="">Payment Method</label>
+                                <label for="">Payment Method <span class="text-danger">*</span></label>
                                 {{roombookingform.payment_method}}
                             </div>
                         </div>
                         <hr>
-                        <button class="btn btn-outline-primary w-100">Book this Room</button>
+                        <button id="book-btn" class="btn btn-outline-primary w-100">Book this Room</button>
                     </form>
                     {% else %}
                     <div class="text-center">
 
                         <h5>You need to login to book room.</h5>
                         <p>If you already have an account</p>
-                        <a class="text-white" style="font-weight: bold;" href="{% url 'hbsapp:customerlogin' %}?next={{request.path}}">Login as a Customer</a>
+                        <a class="text-white" style="font-weight: bold;"
+                            href="{% url 'hbsapp:customerlogin' %}?next={{request.path}}">Login as a Customer</a>
                         <p>If you don't have an account</p>
-                        <a class="text-white" style="font-weight: bold;" href="{% url 'hbsapp:customerlogin' %}?next={{request.path}}">Register as a Customer</a>
+                        <a class="text-white" style="font-weight: bold;"
+                            href="{% url 'hbsapp:customerlogin' %}?next={{request.path}}">Register as a Customer</a>
                     </div>
                     {% endif %}
                 </div>
@@ -94,4 +108,62 @@
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function (e) {
+        document.getElementById("id_booking_starts").addEventListener("change", function (ev) {
+            var date = this.value
+            fetch(`{% url 'hbsapp:customerroomcheck' room.id %}?date=${date}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status == "error") {
+                        document.getElementById("book-btn").setAttribute("disabled", "disabled")
+                        Swal.fire({
+                            text: 'You can not choose the past date.',
+                            icon: 'error',
+                            confirmButtonText: 'Sorry'
+                        })
+                    } else if (data.status == "unavailable") {
+                        document.getElementById("book-btn").setAttribute("disabled", "disabled")
+                        Swal.fire({
+                            text: 'Sorry! this room is already booked for this date.',
+                            icon: 'error',
+                            confirmButtonText: 'Choose Another'
+                        })
+                    } else {
+                        document.getElementById("book-btn").removeAttribute("disabled")
+                    }
+                });
+        })
+    })
+</script>
+<script>
+    function compareDates() {
+        //Get the text in the elements
+        var from = document.getElementById('id_booking_starts').value;
+        var to = document.getElementById('id_booking_ends').value;
+
+        //Generate an array where the first element is the year, second is month and third is day
+        var splitFrom = from.split('/');
+        var splitTo = to.split('/');
+
+        //Create a date object from the arrays
+        var fromDate = Date.parse(splitFrom[0], splitFrom[1] - 1, splitFrom[2]);
+        var toDate = Date.parse(splitTo[0], splitTo[1] - 1, splitTo[2]);
+
+        //Return the result of the comparison
+        if (fromDate > toDate) {
+            document.getElementById("book-btn").setAttribute("disabled", "disabled")
+            Swal.fire({
+                text: 'Departure date must be greater than arrival date',
+                icon: 'error',
+                confirmButtonText: 'Sorry'
+            })
+        }else{
+            document.getElementById("book-btn").removeAttribute("disabled")
+        }
+    }
+</script>
 {% endblock %}

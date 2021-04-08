@@ -8,8 +8,10 @@
 </head>
 <body>
     <h5>{{admin.user.username}}</h5>
-    <a href="{% url 'hbsapp:adminhome' %}">Home</a>
-    <a href="{% url 'hbsapp:adminhotellist' %}">Hotel List</a>
+    <a href="{% url 'hbsapp:adminhome' %}">Home</a> |
+    <a href="{% url 'hbsapp:adminhotellist' %}">Hotel List</a> |
+    <a href="{% url 'hbsapp:adminroomlist' %}">Hotel Rooms</a> | 
+    <a href="{% url 'hbsapp:adminhotellist' %}">Booking Request</a> | 
     <a href="{% url 'hbsapp:adminlogout' %}">Logout</a>
     {% block content %}
 
