@@ -58,6 +58,11 @@ class CustomerRegisterView(ClientMixin, View):
                 Customer.objects.create(user=user, mobile=mobile)
                 login(request, user)
                 messages.success(request, "You are registered successfully.")
+                if "next" in request.GET:
+                    next_url = request.GET.get("next")
+                    return redirect(next_url)
+                else:
+                    return redirect("hbsapp:clienthome")
             else:
                 context["registrationform"] = CustomerRegistrationForm
                 context["error"] = "Invalid attempts"
@@ -69,7 +74,6 @@ class CustomerRegisterView(ClientMixin, View):
             context["error"] = "Invalid attempts"
             messages.error(request, "Invalid attempts to register.")
             return render(request, "clienttemplates/customerregister.html", context)
-        return redirect("hbsapp:clienthome")
 
 
 class CustomerLoginView(ClientMixin, View):
@@ -156,7 +160,6 @@ class CustomerRoomBookingView(CustomerRequiredMixin, ClientMixin, View):
             context = self.context
             booking_form = RoomBookingForm(request.POST)
             if booking_form.is_valid():
-                print(booking_form.cleaned_data)
                 booking = booking_form.save(commit=False)
                 booking.hotel_room = room
                 booking.customer = request.user.customer
@@ -165,7 +168,7 @@ class CustomerRoomBookingView(CustomerRequiredMixin, ClientMixin, View):
                 stay_days = 1 if stay_days.days == 0 else stay_days.days
                 booking.amount = room.price * booking_form.cleaned_data.get("total_persons") * stay_days
                 booking.save()
-                return render(request, "clienttemplates/customerroombooking.html", context)
+                return redirect(reverse("hbsapp:customerbookingdetail", kwargs={"pk": booking.id}) + "?b=s")
             else:
                 messages.error(request, "Something went wrong..")
                 return redirect("hbsapp:clientroomdetail", room_code=room.room_code, pk=room.id)
@@ -178,7 +181,23 @@ class CustomerRoomBookingView(CustomerRequiredMixin, ClientMixin, View):
 class CustomerProfileView(CustomerRequiredMixin, ClientMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.context
+        customer = request.user.customer
+        context["customer"] = customer
+        context["allbookings"] = RoomBooking.objects.filter(customer=customer).order_by("-id")
         return render(request, "clienttemplates/customerprofile.html", context)
+
+
+class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        try:
+            context["booking"] = RoomBooking.objects.get(id=self.kwargs.get("pk"), customer=request.user.customer)
+            return render(request, "clienttemplates/customerbookingdetail.html", context)
+        except Exception as e:
+            messages.error(request, "You are not allowed to view this page.")
+            return redirect("hbsapp:clienthome")
+
 
 # admin views
 

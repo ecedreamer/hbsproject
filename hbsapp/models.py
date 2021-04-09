@@ -116,4 +116,10 @@ class RoomBooking(TimeStamp):
     def __str__(self):
         return self.hotel_room.room_code
 
+    @property
+    def booking_duration(self):
+        stay_days = self.booking_ends - self.booking_starts
+        stay_days = 1 if stay_days.days == 0 else stay_days.days
+        return stay_days
+
 

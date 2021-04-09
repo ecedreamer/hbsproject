@@ -53,7 +53,6 @@
                         <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
                             {% if request.user.customer %}
                             <li><a class="dropdown-item" href="{% url 'hbsapp:customerprofile' %}" class="dropdown-item">My Profile</a></li>
-                            <li><a class="dropdown-item" href="#" class="dropdown-item">Booking History</a></li>
                             <li><a class="dropdown-item" href="{% url 'hbsapp:customerlogout' %}">Logout</a></li>
                             {% else %}
                             <li><a class="dropdown-item" href="{% url 'hbsapp:customerlogin' %}">Login</a></li>

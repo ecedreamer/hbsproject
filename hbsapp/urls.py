@@ -19,6 +19,8 @@ urlpatterns = [
 
     path("customer-profile/",
          CustomerProfileView.as_view(), name="customerprofile"),
+     path("customer-profile/booking-<int:pk>/",
+         CustomerBookingDetailView.as_view(), name="customerbookingdetail"),
 
     # admin urls
     path("admin-login/", AdminLoginView.as_view(), name="adminlogin"),

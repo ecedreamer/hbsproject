@@ -1,0 +1,76 @@
+{% extends 'clienttemplates/clientbase.html' %}
+
+{% block title %}Booking Success {% endblock %}
+{% load humanize %}
+
+{% block content %}
+<div class="row mt-3">
+    <div class="col-md-12">
+        <div class="card p-3">
+            {% if request.GET.b == "s" %}
+            <div class="row">
+                <div class="col-md-12">
+                    <h4 class="text-center text-success">Booking Successful!!!</h4>
+                    <h4 class="text-center">Thanks for booking our Hotel Room. </h4>
+                </div>
+            </div>
+            {% endif %}
+            <div class="row">
+                <div class="col-md-6">
+                    <img src="{{booking.hotel_room.image.url}}" class="img-fluid" alt="">
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th>Hotel Room: </th>
+                                <td>{{booking.hotel_room.room_type}} ({{booking.hotel_room.room_code}}) at {{booking.hotel_room.hotel}} </td>
+                            </tr>
+                            <tr>
+                                <th>Location: </th>
+                                <td>{{booking.hotel_room.hotel.address}}</td>
+                            </tr>
+                            <tr>
+                                <th>Booked on </th>
+                                <td>{{booking.created_at}} | <span class="text-info">{{booking.created_at|timesince}} ago</span></td>
+                            </tr>
+                            <tr>
+                                <th>Booking for: </th>
+                                <td>{{booking.booking_starts}} -- {{booking.booking_ends}}</td>
+                            </tr>
+                            <tr>
+                                <th>Room Rate: </th>
+                                <td>Rs. {{booking.hotel_room.price|intcomma}}/- per person per day.</td>
+                            </tr>
+                            <tr>
+                                <th>Total Persons: </th>
+                                <td>{{booking.total_persons}} persons</td>
+                            </tr>
+                            <tr>
+                                <th>Total duration: </th>
+                                <td>{{booking.booking_duration}} days</td>
+                            </tr>
+                            
+                        </tbody>
+                        <tfoot class="bg-dark text-white">
+                            <tr>
+                                <th>Total Amount: </th>
+                                <td>Rs. {{booking.amount|intcomma}}/-</td>
+                            </tr>
+                            <tr>
+                                <th>Payment Method: </th>
+                                <td>{{booking.payment_method}}</td>
+                            </tr>
+                            <tr>
+                                <th>Payment Status: </th>
+                                <td>{% if booking.payment_status %} Paid{% else %} Not paid{% endif %}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
