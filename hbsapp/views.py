@@ -53,9 +53,12 @@ class CustomerRegisterView(ClientMixin, View):
             email = registrationform.cleaned_data.get("email")
             password = registrationform.cleaned_data.get("password")
             mobile = registrationform.cleaned_data.get("mobile")
+            first_name = registrationform.cleaned_data.get("first_name")
+            last_name = registrationform.cleaned_data.get("last_name")
+            address = registrationform.cleaned_data.get("address")
             if not User.objects.filter(username=email).exists():
-                user = User.objects.create_user(email, email, password)
-                Customer.objects.create(user=user, mobile=mobile)
+                user = User.objects.create_user(email, email, password, first_name=first_name, last_name=last_name)
+                Customer.objects.create(user=user, mobile=mobile, address=address)
                 login(request, user)
                 messages.success(request, "You are registered successfully.")
                 if "next" in request.GET:

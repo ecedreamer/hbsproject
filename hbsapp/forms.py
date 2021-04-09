@@ -15,6 +15,18 @@ class LoginForm(forms.Form):
 
 # customer forms
 class CustomerRegistrationForm(forms.Form):
+    first_name = forms.CharField(widget=forms.TextInput(attrs={
+        "class": "form-control",
+        "placeholder": "Enter your first name..."
+    }))
+    last_name = forms.CharField(widget=forms.TextInput(attrs={
+        "class": "form-control",
+        "placeholder": "Enter your last name..."
+    }))
+    address = forms.CharField(widget=forms.TextInput(attrs={
+        "class": "form-control",
+        "placeholder": "Enter your address..."
+    }))
     email = forms.EmailField(widget=forms.EmailInput(attrs={
         "placeholder": "Enter your email...",
         "class": "form-control",

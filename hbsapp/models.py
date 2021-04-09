@@ -56,6 +56,7 @@ class HotelRoom(TimeStamp):
 class Customer(TimeStamp):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     mobile = models.CharField(max_length=20)
+    address = models.CharField(max_length=20, null=True, blank=True)
     profile_image = models.ImageField(upload_to="customers", null=True, blank=True)
     description = models.TextField()
 
