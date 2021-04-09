@@ -19,7 +19,7 @@ urlpatterns = [
 
     path("customer-profile/",
          CustomerProfileView.as_view(), name="customerprofile"),
-     path("customer-profile/booking-<int:pk>/",
+    path("customer-profile/booking-<int:pk>/",
          CustomerBookingDetailView.as_view(), name="customerbookingdetail"),
 
     # admin urls
@@ -38,4 +38,10 @@ urlpatterns = [
          AdminRoomListView.as_view(), name="adminroomlist"),
     path("system-admin/room-create/",
          AdminRoomCreateView.as_view(), name="adminroomcreate"),
+
+
+    path("system-admin/room-booking/",
+         AdminBookingListView.as_view(), name="adminbookinglist"),
+     path("system-admin/room-booking-<int:pk>/",
+         AdminBookingDetailView.as_view(), name="adminbookingdetail"),
 ]

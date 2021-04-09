@@ -8,9 +8,9 @@
         <div class="card p-3">
             <div class="row">
                 <div class="col-md-12">
-                    <h4>Customer Profile</h4>
-                    <a href="" class="btn btn-danger m-1" style="float: right;">Change Password</a>
-                    <a href="" class="btn btn-info m-1" style="float: right;">Update Profile</a> 
+                    <h4>Customer Profile <a href="" class="btn btn-danger m-1" style="float: right;">Change Password</a>
+                        <a href="" class="btn btn-info m-1" style="float: right;">Update Profile</a>
+                    </h4>
                 </div>
             </div>
             <hr>
@@ -39,7 +39,8 @@
                                         </tr>
                                         <tr>
                                             <th>Customer Image </th>
-                                            <td><img src="{% if customer.profile_image %}{{customer.profile_image.url}}{% else %}{% static 'clientstatic/images/customer.png' %}{% endif %}" class="img-fluid" alt=""></td>
+                                            <td><img src="{% if customer.profile_image %}{{customer.profile_image.url}}{% else %}{% static 'clientstatic/images/customer.png' %}{% endif %}"
+                                                    class="img-fluid" alt=""></td>
                                         </tr>
                                     </tbody>
                                 </table>
@@ -53,22 +54,24 @@
                             <div class="col-md-12">
                                 <h4>My Booking History</h4>
                                 <hr>
-                                <table class="table">
+                                <table class="table table-bordered">
                                     <thead>
                                         <tr>
-                                            <th>SN</th>
                                             <th>Hotel Room</th>
                                             <th>Booked on</th>
                                             <th>Booking for</th>
+                                            <th>Status</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {% for booking in allbookings %}
                                         <tr>
-                                            <td>{{forloop.counter}}</td>
-                                            <td><a href="{% url 'hbsapp:customerbookingdetail' booking.id %}">{{booking.hotel_room.room_type}} ({{booking.hotel_room.room_code}}) at {{booking.hotel_room.hotel.name}} </a></td>
+                                            <td><a href="{% url 'hbsapp:customerbookingdetail' booking.id %}">{{booking.hotel_room.room_type}}
+                                                    ({{booking.hotel_room.room_code}}) at
+                                                    {{booking.hotel_room.hotel.name}} </a></td>
                                             <td>{{booking.created_at}} </td>
                                             <td>{{booking.booking_duration}} days </td>
+                                            <td><span class="badge bg-{% if booking.booking_status == 'Rejected' %}danger{% elif booking.booking_status == 'Pending' %}info{% else %}success{% endif %}">{{booking.booking_status}}</span> </td>
                                         </tr>
                                         {% endfor %}
                                     </tbody>

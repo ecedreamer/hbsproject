@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
+from django.db.models import Sum, Count
 from django.views.generic import View
 from django.http import JsonResponse
 from django.contrib import messages
@@ -261,6 +262,21 @@ class AdminRequiredMixin(object):
 class AdminHomeView(AdminRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.context
+        context["hotels"] = Hotel.objects.all()
+        context["rooms"] = HotelRoom.objects.all()
+        all_bookings = RoomBooking.objects.all()
+
+        context["all_bookings"] = all_bookings
+        context["confirmed_bookings"] = all_bookings.filter(booking_status="Confirmed")
+        context["booking_requests"] = all_bookings.filter(booking_status="Pending")
+        context["served_peoples"] = all_bookings.aggregate(total=Sum("total_persons")).get("total") or 0
+        context["registered_customers"] = Customer.objects.all().count()
+
+        context["rejected_amount"] = all_bookings.filter(booking_status="Rejected").aggregate(total=Sum("amount")).get("total") or 0
+        context["confirmed_amount"] = all_bookings.filter(booking_status="Confirmed").aggregate(total=Sum("amount")).get("total") or 0
+        context["collected_amount"] = all_bookings.filter(booking_status="Confirmed", payment_status=True).aggregate(total=Sum("amount")).get("total") or 0
+        context["pending_amount"] = all_bookings.filter(booking_status__in=["Confirmed", "Pending"], payment_status=False).aggregate(total=Sum("amount")).get("total") or 0
+        context["epayment"] = all_bookings.exclude(payment_method__name="Pay at Hotel").filter(booking_status__in=["Confirmed", "Pending"], payment_status=True).aggregate(total=Sum("amount")).get("total") or 0
         return render(request, "admintemplates/adminhome.html", context)
 
 
@@ -337,3 +353,18 @@ class AdminRoomCreateView(AdminRequiredMixin, View):
         else:
             messages.error(request, "Something went wrong")
         return redirect("hbsapp:adminroomlist")
+
+
+class AdminBookingListView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        allbookings = RoomBooking.objects.all()
+        context["pending_bookings"] = allbookings.filter(booking_status="Pending").count()
+        context["allbookings"] = allbookings
+        return render(request, "admintemplates/adminbookinglist.html", context)
+
+
+class AdminBookingDetailView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        return render(request, "admintemplates/adminbookingdetail.html", context)
