@@ -42,6 +42,6 @@ urlpatterns = [
 
     path("system-admin/room-booking/",
          AdminBookingListView.as_view(), name="adminbookinglist"),
-     path("system-admin/room-booking-<int:pk>/",
+    path("system-admin/room-booking-<int:pk>/",
          AdminBookingDetailView.as_view(), name="adminbookingdetail"),
 ]

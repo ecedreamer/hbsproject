@@ -113,6 +113,7 @@ class RoomBooking(TimeStamp):
     amount = models.PositiveIntegerField()
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.RESTRICT)
     payment_status = models.BooleanField(default=False)
+    paid_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.hotel_room.room_code

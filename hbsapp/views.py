@@ -367,4 +367,39 @@ class AdminBookingListView(AdminRequiredMixin, View):
 class AdminBookingDetailView(AdminRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.context
+        context["booking"] = RoomBooking.objects.get(id=self.kwargs.get("pk"))
         return render(request, "admintemplates/adminbookingdetail.html", context)
+
+    def post(self, request, *args, **kwargs):
+        rb = RoomBooking.objects.get(id=self.kwargs.get("pk"))
+        action = request.POST.get("action")
+        if action == "bc":
+            rb.booking_status = "Confirmed"
+            rb.save()
+            status = "success"
+        elif action == "br":
+            rb.booking_status = "Rejected"
+            rb.save()
+            status = "success"
+        elif action == "ci":
+            rb.customer_checked_in = True
+            rb.checkin_time = timezone.localtime(timezone.now())
+            rb.save()
+            status = "success"
+        elif action == "co":
+            rb.customer_checked_out = True
+            rb.checkout_time = timezone.localtime(timezone.now())
+            rb.save()
+            status = "success"
+        elif action == "mp":
+            rb.payment_status = True
+            rb.paid_date = timezone.localtime(timezone.now())
+            rb.save()
+            status = "success"
+        else:
+            status = "error"
+        resp = {
+            "action": request.POST.get("action"),
+            "status": status
+        }
+        return JsonResponse(resp)
