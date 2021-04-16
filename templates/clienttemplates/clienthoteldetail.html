@@ -9,36 +9,38 @@
         <div class="col-md-12">
             <div class="card p-3">
                 <div class="card-head">
-                    <h4>Popular Rooms</h4>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <h4>Hotel Information</h4><hr>
+                            <h5>Hotel: {{hotel.name}}</h5>
+                            <h5>Address: {{hotel.address}}</h5>
+                            <h5>Email: {{hotel.email}}</h5>
+                            <h5>Contact: {{hotel.contact}}</h5>
+                            
+                        </div>
+                        <div class="col-md-4">
+                            <h4>Other Information</h4><hr>
+                            <h5>Joined On: {{hotel.created_at|date}}</h5>
+                            <h5>Total Rooms: {{hotel.hotelroom_set.count}} Rooms</h5>
+                            <h5>Total Booking: {{total_bookings.count}} Successful Bookings</h5>
+                        </div>
+                        <div class="col-md-4">
+                            <img src="{% if hotel.image %}{{hotel.image.url}}{% else %}{% static 'clientstatic/images/default_hotel.jpeg' %}{% endif %}" alt="" class="img-fluid">
+                        </div>
+                    </div>
+                   
                 </div>
+                <h5>Rooms of {{hotel.name}}</h5>
                 <hr>
                 <div class="card-body">
                     <div class="row">
-                        {% for room in popular_rooms %}
+                        {% for room in hotel.hotelroom_set.all %}
                         <div class="col-md-3 mb-3">
                             <div class="card p-2 item" style="cursor: pointer;" data-url="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}">
                                 <img src="{{room.image.url}}" class="img-fluid" style="height: 200px; object-fit: contain;" alt="">
                                 <p style="font-size: 14px;">Hotel: {{room.hotel.name}}({{room.hotel.address}})</p>
                                 <p style="font-size: 14px;">Price: {{room.price}}/Day | Room Type: {{room.room_type}}</p>
                                 <a href="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}" class="text-end">Book Now</a>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            <div class="card p-3 mt-3">
-                <div class="card-head">
-                    <h4>Our Partners Hotels</h4>
-                </div>
-                <hr>
-                <div class="card-body">
-                    <div class="row">
-                        {% for hotel in all_hotels %}
-                        <div class="col-md-3 mb-3">
-                            <div class="card p-2 item" style="cursor: pointer;" data-url="{% url 'hbsapp:clienthoteldetail' hotel.id%}">
-                                <p style="margin-bottom: 0;font-weight: bold;" class="text-center">{{hotel.name}}({{hotel.address}})</p>
-                                <img src="{% if hotel.image %}{{hotel.image.url}}{% else %}{% static 'clientstatic/images/default_hotel.jpeg' %}{% endif %}" class="img-fluid" style="height: 200px; object-fit: contain;" alt="">
                             </div>
                         </div>
                         {% endfor %}

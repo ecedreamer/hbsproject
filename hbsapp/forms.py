@@ -2,6 +2,27 @@ from django import forms
 from .models import *
 
 
+class ContactForm(forms.ModelForm):
+    class Meta:
+        model = Message
+        fields = ["full_name", "mobile", "email", "message"]
+        widgets = {
+            "full_name": forms.TextInput(attrs={
+                "class": "form-control"
+            }),
+            "mobile": forms.NumberInput(attrs={
+                "class": "form-control",
+            }),
+            "email": forms.EmailInput(attrs={
+                "class": "form-control",
+                "pattern": '[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$'
+            }),
+            "message": forms.Textarea(attrs={
+                "class": "form-control",
+                "rows": 4
+            })
+        }
+
 class LoginForm(forms.Form):
     email = forms.EmailField(widget=forms.EmailInput(attrs={
         "placeholder": "Enter your email...",

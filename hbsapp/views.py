@@ -1,13 +1,14 @@
 from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
-from django.db.models import Sum, Count
+from django.db.models import Sum, Count, Q
 from django.views.generic import View
 from django.http import JsonResponse
 from django.contrib import messages
 from django.utils import timezone
 from datetime import date
 from .forms import *
+import requests
 
 
 class ClientMixin(object):
@@ -21,8 +22,52 @@ class ClientMixin(object):
 class ClientHomeView(ClientMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.context
+        context["all_hotels"] = Hotel.objects.order_by("-id")
         context["popular_rooms"] = HotelRoom.objects.order_by("-view_count")
         return render(request, "clienttemplates/clienthome.html", context)
+
+
+class ClientContactView(ClientMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        context["contact_form"] = ContactForm
+        return render(request, "clienttemplates/clientcontact.html", context)
+
+    def post(self, request, *args, **kwargs):
+        contact_form = ContactForm(request.POST)
+        if contact_form.is_valid():
+            contact_form.save()
+            messages.success(request, "Thanks for contacting us. We will get back to you shortly.")
+        else:
+            messages.error(request, "Something went wrong...")
+        return redirect("hbsapp:clienthome")
+
+
+class ClientSearchView(ClientMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        keyword = request.GET.get("keyword")
+        context["searched_hotels"] = Hotel.objects.filter(Q(name__icontains=keyword) | Q(address__icontains=keyword))
+
+        query_string = Q(hotel__name__icontains=keyword) | Q(hotel__address__icontains=keyword) | Q(room_type__icontains=keyword) | Q(room_type__icontains=keyword) | Q(room_code__icontains=keyword) | Q(description__icontains=keyword) 
+
+        context["searched_rooms"] = HotelRoom.objects.filter(query_string)
+
+        return render(request, "clienttemplates/clientsearch.html", context)
+
+
+class ClientHotelDetailView(ClientMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        try:
+            hotel = Hotel.objects.get(id=self.kwargs.get("pk"))
+            context["hotel"] = hotel
+            context["total_bookings"] = RoomBooking.objects.filter(hotel_room__hotel=hotel, booking_status="Confirmed")
+        except Exception as e:
+            print(e)
+            messages.error(request, "Hotel not found..")
+            return redirect("hbsapp:clienthome")
+        return render(request, "clienttemplates/clienthoteldetail.html", context)
 
 
 class ClientRoomDetailView(ClientMixin, View):
@@ -58,8 +103,10 @@ class CustomerRegisterView(ClientMixin, View):
             last_name = registrationform.cleaned_data.get("last_name")
             address = registrationform.cleaned_data.get("address")
             if not User.objects.filter(username=email).exists():
-                user = User.objects.create_user(email, email, password, first_name=first_name, last_name=last_name)
-                Customer.objects.create(user=user, mobile=mobile, address=address)
+                user = User.objects.create_user(
+                    email, email, password, first_name=first_name, last_name=last_name)
+                Customer.objects.create(
+                    user=user, mobile=mobile, address=address)
                 login(request, user)
                 messages.success(request, "You are registered successfully.")
                 if "next" in request.GET:
@@ -141,8 +188,9 @@ class CustomerRoomCheckView(ClientMixin, View):
         room = HotelRoom.objects.get(id=self.kwargs.get("pk"))
         booking_starts = request.GET.get("date")
         booking_for = date.fromisoformat(booking_starts)
-        if booking_for >= timezone.now().date() :
-            rb = RoomBooking.objects.filter(hotel_room=room, booking_starts__lte=booking_starts, booking_ends__gte=booking_starts)
+        if booking_for >= timezone.now().date():
+            rb = RoomBooking.objects.filter(
+                hotel_room=room, booking_starts__lte=booking_starts, booking_ends__gte=booking_starts)
             if rb.exists():
                 room_status = "unavailable"
             else:
@@ -153,7 +201,6 @@ class CustomerRoomCheckView(ClientMixin, View):
             "status": room_status
         }
         return JsonResponse(resp)
-
 
 
 class CustomerRoomBookingView(CustomerRequiredMixin, ClientMixin, View):
@@ -168,11 +215,18 @@ class CustomerRoomBookingView(CustomerRequiredMixin, ClientMixin, View):
                 booking.hotel_room = room
                 booking.customer = request.user.customer
                 booking.booking_status = "Pending"
-                stay_days = booking_form.cleaned_data.get("booking_ends") - booking_form.cleaned_data.get("booking_starts")
+                stay_days = booking_form.cleaned_data.get(
+                    "booking_ends") - booking_form.cleaned_data.get("booking_starts")
                 stay_days = 1 if stay_days.days == 0 else stay_days.days
-                booking.amount = room.price * booking_form.cleaned_data.get("total_persons") * stay_days
+                booking.amount = room.price * \
+                    booking_form.cleaned_data.get("total_persons") * stay_days
                 booking.save()
-                return redirect(reverse("hbsapp:customerbookingdetail", kwargs={"pk": booking.id}) + "?b=s")
+                if booking.payment_method.name in ["Khalti", "khalti"]:
+                    request.session["booking_id"] = booking.id
+                    return redirect(booking.payment_method.payment_url)
+                else:
+                    messages.success(request, "Room booking successful...")
+                    return redirect(reverse("hbsapp:customerbookingdetail", kwargs={"pk": booking.id}) + "?b=s")
             else:
                 messages.error(request, "Something went wrong..")
                 return redirect("hbsapp:clientroomdetail", room_code=room.room_code, pk=room.id)
@@ -180,6 +234,54 @@ class CustomerRoomBookingView(CustomerRequiredMixin, ClientMixin, View):
             messages.error(request, "Room not found..")
             print(e)
             return redirect("hbsapp:clienthome")
+
+
+class KhaltiRequestView(CustomerRequiredMixin, ClientMixin, View):
+    def get(self, request, *args, **kwargs):
+        try:
+            booking = RoomBooking.objects.get(
+                id=request.session.get("booking_id"))
+            context = self.context
+            context["booking"] = booking
+            return render(request, "clienttemplates/khaltirequest.html", context)
+        except Exception as e:
+            messages.error(request, "Invalid Request...")
+            print(e)
+            return redirect("hbsapp:clienthome")
+
+
+class KhaltiVerifyView(CustomerRequiredMixin, ClientMixin, View):
+    def post(self, request, *args, **kwargs):
+        try:
+            booking = RoomBooking.objects.get(
+                id=request.session.get("booking_id"))
+            payment_method = booking.payment_method
+            url = payment_method.payment_verify_url
+            payload = {
+            "token": request.POST.get("token"),
+            "amount": request.POST.get("amount")
+            }
+            headers = {
+            "Authorization": f"Key {payment_method.test_secret_key}"
+            }
+
+            response = requests.post(url, payload, headers=headers)
+            resp_dict = response.json()
+            if resp_dict.get("idx"):
+                booking.payment_status = True
+                booking.paid_date = timezone.localtime(timezone.now())
+                booking.save()
+                del request.session["booking_id"]
+                messages.success(request, "Booking success. Thanks for booking our room.")
+                return JsonResponse({"status": "success", "return_url": booking.get_absolute_url + "?b=s"})
+            else:
+                return JsonResponse({"status": "error", "return_url": payment_method.khalti_verify})
+
+        except Exception as e:
+            messages.error(request, "Invalid Reqeust...")
+            print(e)
+            return redirect("hbsapp:clienthome")
+
 
 
 class CustomerProfileView(CustomerRequiredMixin, ClientMixin, View):
@@ -403,3 +505,32 @@ class AdminBookingDetailView(AdminRequiredMixin, View):
             "status": status
         }
         return JsonResponse(resp)
+
+
+
+class AdminMessageListView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        context["all_messages"] = Message.objects.order_by("-id")
+        return render(request, "admintemplates/adminmessagelist.html", context)
+
+
+class AdminCustomerListView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        context["all_customers"] = Customer.objects.order_by("-id")
+        return render(request, "admintemplates/admincustomerlist.html", context)
+
+
+class AdminCustomerDetailView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        try:
+            customer = Customer.objects.get(id=self.kwargs.get("pk"))
+            context["customer"] = customer
+            context["allbookings"] = RoomBooking.objects.filter(customer=customer)
+        except Exception as e:
+            print(e)
+            messages.error(request, "Customer not found...")
+            return redirect("hbsapp:adminhome")
+        return render(request, "admintemplates/admincustomerdetail.html", context)

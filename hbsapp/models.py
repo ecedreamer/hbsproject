@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.urls import reverse
 from django.db import models
 
 
@@ -51,6 +52,10 @@ class HotelRoom(TimeStamp):
     def __str__(self):
         return self.room_code
 
+    @property
+    def get_absolute_url(self):
+        return reverse("hbsapp:clientroomdetail",kwargs={"room_code": self.room_code, "pk": self.id})
+
 
 
 class Customer(TimeStamp):
@@ -58,7 +63,6 @@ class Customer(TimeStamp):
     mobile = models.CharField(max_length=20)
     address = models.CharField(max_length=20, null=True, blank=True)
     profile_image = models.ImageField(upload_to="customers", null=True, blank=True)
-    description = models.TextField()
 
     def __str__(self):
         return self.user.username
@@ -124,4 +128,17 @@ class RoomBooking(TimeStamp):
         stay_days = 1 if stay_days.days == 0 else stay_days.days
         return stay_days
 
+    @property
+    def get_absolute_url(self):
+        return reverse("hbsapp:customerbookingdetail",kwargs={"pk": self.id})
 
+
+
+class Message(TimeStamp):
+    full_name = models.CharField(max_length=200)
+    mobile = models.CharField(max_length=20)
+    email = models.EmailField(null=True, blank=True)
+    message = models.TextField()
+
+    def __str__(self):
+        return self.full_name

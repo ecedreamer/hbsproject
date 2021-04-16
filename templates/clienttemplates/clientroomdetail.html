@@ -27,7 +27,7 @@
                                 <tbody>
                                     <tr>
                                         <th>Hotel: </th>
-                                        <td>{{room.hotel}}</td>
+                                        <td><a href="{% url 'hbsapp:clienthoteldetail' room.hotel.id %}">{{room.hotel}}</a></td>
                                     </tr>
                                     <tr>
                                         <th>Location: </th>

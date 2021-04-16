@@ -1,5 +1,5 @@
 {% extends 'admintemplates/adminbase.html' %}
-{% block title %}Hotel Room List{% endblock %}
+{% block title %}Customer List{% endblock %}
 
 {% block css %}
 <link rel="stylesheet" href="//cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
@@ -11,8 +11,7 @@
         <div class="card p-3">
             <div class="row">
                 <div class="col-md-12">
-                    <h4 class="text-center">Hotel's Room List</h4>
-                    <a href="{% url 'hbsapp:adminhotelcreate' %}" style="float: right;">Add new Room</a>
+                    <h4 class="text-center">Customer List</h4>
                 </div>
             </div>
             <hr>
@@ -22,26 +21,20 @@
                 <thead>
                     <tr>
                         <th>SN</th>
-                        <th>Room Type</th>
-                        <th>Hotel</th>
-                        <th>Room Code</th>
-                        <th>Price</th>
-                        <th>View Count</th>
-                        <th>Action</th>
+                        <th>Customer(Username)</th>
+                        <th>Mobile/Address</th>
+                        <th>Booking History</th>
+                        <th>Registered On</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for room in roomlist %}
+                    {% for customer in all_customers %}
                     <tr>
                         <td>{{forloop.counter}}</td>
-                        <td>{{room.room_type}}</td>
-                        <td>{{room.hotel}}</td>
-                        <td>{{room.room_code}}</td>
-                        <td>{{room.price}}</td>
-                        <td>{{room.view_count}}</td>
-                        <td>
-                            <a href="">Update</a>
-                        </td>
+                        <td><a href="{% url 'hbsapp:admincustomerdetail' customer.id %}">{{customer.user.first_name}} {{customer.user.last_name}}({{customer.user.username}})</a></td>
+                        <td>{{customer.mobile}}/{{customer.address}}</td>
+                        <td>{{customer.roombooking_set.count}} bookings</td>
+                        <td>{{customer.created_at|date}}</td>
                     </tr>
                     {% endfor %}
                 </tbody>

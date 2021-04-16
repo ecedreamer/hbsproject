@@ -1,5 +1,6 @@
 {% extends 'admintemplates/adminbase.html' %}
-{% block title %}Hotel List{% endblock %}
+
+{% block title %}Messages List{% endblock %}
 
 {% block css %}
 <link rel="stylesheet" href="//cdn.datatables.net/1.10.24/css/jquery.dataTables.min.css">
@@ -11,8 +12,7 @@
         <div class="card p-3">
             <div class="row">
                 <div class="col-md-12">
-                    <h4 class="text-center">Out Partner Hotels</h4>
-                    <a href="{% url 'hbsapp:adminhotelcreate' %}" style="float: right;">Add new hotel</a>
+                    <h4 class="text-center">Received Messages <small>(hover on table to see full message.)</small></h4>
                 </div>
             </div>
             <hr>
@@ -22,24 +22,22 @@
                         <thead>
                             <tr>
                                 <th>SN</th>
-                                <th>Name</th>
-                                <th>Address</th>
-                                <th>Contact</th>
+                                <th>Sender</th>
                                 <th>Email</th>
-                                <th>Action</th>
+                                <th>Mobile</th>
+                                <th>Message</th>
+                                <th>Sent Date</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for hotel in hotellist %}
-                            <tr>
+                            {% for message in all_messages %}
+                            <tr title="{{message.message}}" style="cursor: pointer;">
                                 <td>{{forloop.counter}}</td>
-                                <td>{{hotel.name}}</td>
-                                <td>{{hotel.address}}</td>
-                                <td>{{hotel.contact}}</td>
-                                <td>{{hotel.email}}</td>
-                                <td>
-                                    <a href="{% url 'hbsapp:adminhotelupdate' hotel.id %}">Update</a>
-                                </td>
+                                <td>{{message.full_name}}</td>
+                                <td>{{message.email}}</td>
+                                <td>{{message.mobile}}</td>
+                                <td>{{message.message|truncatechars:50}}</td>
+                                <td>{{message.created_at|date}}</td>
                             </tr>
                             {% endfor %}
                         </tbody>

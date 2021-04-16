@@ -27,15 +27,16 @@
                                             <br>
                                         </div>
                                     </div>
-                                    {% elif booking.booking_status == "Confirmed" and not booking.customer_checked_in %}
+                                    {% elif booking.booking_status == "Confirmed" %}
+                                    {% if not booking.customer_checked_in %}
                                     <a href="" class="act-btn btn btn-info" data-act="ci">Checked in</a> <br>
-                                    {% if booking.customer_checked_in %}
+                                    {% elif not booking.checkout_time %}
                                     <a href="" class="act-btn btn btn-info" data-act="co"> Checked Out</a>
                                     {% endif %}
 
                                     {% else %}
                                     {% endif %}
-                                    {% if not booking.payment_status %}
+                                    {% if not booking.payment_status and booking.booking_status != "Rejected" %}
                                     <a href="" class="act-btn btn btn-success" data-act="mp">Make Paid</a>
                                     {% endif %}
                                 </div>
@@ -167,7 +168,7 @@
                                             </tr>
                                             <tr>
                                                 <th>Checked out Time </th>
-                                                <td>{% if booking.checkin_time %}{{booking.checkin_time}}{% endif %}
+                                                <td>{% if booking.checkout_time %}{{booking.checkout_time}}{% endif %}
                                                 </td>
                                             </tr>
                                         </tbody>

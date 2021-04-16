@@ -5,6 +5,10 @@ app_name = "hbsapp"
 urlpatterns = [
     # client urls
     path("", ClientHomeView.as_view(), name="clienthome"),
+    path("contact/", ClientContactView.as_view(), name="clientcontact"),
+    path("search/", ClientSearchView.as_view(), name="clientsearch"),
+    path("hotel-<int:pk>-rooms/",
+         ClientHotelDetailView.as_view(), name="clienthoteldetail"),
     path("room-<room_code>-<int:pk>/",
          ClientRoomDetailView.as_view(), name="clientroomdetail"),
     # customer urls
@@ -16,6 +20,9 @@ urlpatterns = [
          CustomerRoomCheckView.as_view(), name="customerroomcheck"),
     path("room-<int:pk>-book/",
          CustomerRoomBookingView.as_view(), name="customerroombooking"),
+
+    path("khalti-request/", KhaltiRequestView.as_view(), name="khaltirequest"),
+    path("khalti-verify/", KhaltiVerifyView.as_view(), name="khaltiverify"),
 
     path("customer-profile/",
          CustomerProfileView.as_view(), name="customerprofile"),
@@ -44,4 +51,13 @@ urlpatterns = [
          AdminBookingListView.as_view(), name="adminbookinglist"),
     path("system-admin/room-booking-<int:pk>/",
          AdminBookingDetailView.as_view(), name="adminbookingdetail"),
+
+
+    path("system-admin/received-messages/",
+         AdminMessageListView.as_view(), name="adminmessagelist"),
+
+    path("system-admin/customers-list/",
+         AdminCustomerListView.as_view(), name="admincustomerlist"),
+    path("system-admin/customers-<int:pk>-detail/",
+         AdminCustomerDetailView.as_view(), name="admincustomerdetail"),
 ]
