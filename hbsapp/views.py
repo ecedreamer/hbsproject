@@ -504,6 +504,10 @@ class AdminBookingDetailView(AdminRequiredMixin, View):
             "action": request.POST.get("action"),
             "status": status
         }
+        if status == "error":
+            messages.error(request, "Something went wrong..")
+        else:
+            messages.success(request, "Booking Information updated successfully...")
         return JsonResponse(resp)
 
 
