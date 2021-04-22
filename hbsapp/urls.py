@@ -26,6 +26,8 @@ urlpatterns = [
 
     path("customer-profile/",
          CustomerProfileView.as_view(), name="customerprofile"),
+    path("customer-profile-update/",
+         CustomerProfileUpdateView.as_view(), name="customerprofileupdate"),
     path("customer-profile/booking-<int:pk>/",
          CustomerBookingDetailView.as_view(), name="customerbookingdetail"),
 
@@ -45,7 +47,8 @@ urlpatterns = [
          AdminRoomListView.as_view(), name="adminroomlist"),
     path("system-admin/room-create/",
          AdminRoomCreateView.as_view(), name="adminroomcreate"),
-
+    path("system-admin/room-<int:pk>-update/",
+         AdminRoomUpdateView.as_view(), name="adminroomupdate"),
 
     path("system-admin/room-booking/",
          AdminBookingListView.as_view(), name="adminbookinglist"),

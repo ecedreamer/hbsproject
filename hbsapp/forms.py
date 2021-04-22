@@ -63,6 +63,33 @@ class CustomerRegistrationForm(forms.Form):
     }))
 
 
+class CustomerProfileForm(forms.ModelForm):
+    first_name = forms.CharField(widget=forms.TextInput(attrs={
+        "class": "form-control",
+        "placeholder": "Your first name..."
+    }))
+    last_name = forms.CharField(widget=forms.TextInput(attrs={
+        "class": "form-control",
+        "placeholder": "Your last name..."
+    }))
+    class Meta:
+        model = Customer
+        fields = ["first_name", "last_name", "mobile", "address", "profile_image"]
+        widgets = {
+            "mobile": forms.NumberInput(attrs={
+                "class": "form-control",
+                "placeholder": "Your Mobile number..."
+            }),
+            "address": forms.TextInput(attrs={
+                "class": "form-control",
+                "placeholder": "your address..."
+            }),
+            "profile_image": forms.ClearableFileInput(attrs={
+                "class": "form-control"
+            })
+        }
+
+
 class RoomBookingForm(forms.ModelForm):
     class Meta:
         model = RoomBooking
@@ -118,5 +145,17 @@ class HotelRoomForm(forms.ModelForm):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for name, field in self.fields.items():
+            field.widget.attrs["class"] = "form-control"
+
+
+class HotelRoomUpdateForm(forms.ModelForm):
+    class Meta:
+        model = HotelRoom
+        fields = ["hotel", "room_type", "room_code", "image", "description", "price"]
+    
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["image"].required = False
         for name, field in self.fields.items():
             field.widget.attrs["class"] = "form-control"

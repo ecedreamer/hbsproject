@@ -37,7 +37,8 @@ class ClientContactView(ClientMixin, View):
         contact_form = ContactForm(request.POST)
         if contact_form.is_valid():
             contact_form.save()
-            messages.success(request, "Thanks for contacting us. We will get back to you shortly.")
+            messages.success(
+                request, "Thanks for contacting us. We will get back to you shortly.")
         else:
             messages.error(request, "Something went wrong...")
         return redirect("hbsapp:clienthome")
@@ -47,9 +48,11 @@ class ClientSearchView(ClientMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.context
         keyword = request.GET.get("keyword")
-        context["searched_hotels"] = Hotel.objects.filter(Q(name__icontains=keyword) | Q(address__icontains=keyword))
+        context["searched_hotels"] = Hotel.objects.filter(
+            Q(name__icontains=keyword) | Q(address__icontains=keyword))
 
-        query_string = Q(hotel__name__icontains=keyword) | Q(hotel__address__icontains=keyword) | Q(room_type__icontains=keyword) | Q(room_type__icontains=keyword) | Q(room_code__icontains=keyword) | Q(description__icontains=keyword) 
+        query_string = Q(hotel__name__icontains=keyword) | Q(hotel__address__icontains=keyword) | Q(room_type__icontains=keyword) | Q(
+            room_type__icontains=keyword) | Q(room_code__icontains=keyword) | Q(description__icontains=keyword)
 
         context["searched_rooms"] = HotelRoom.objects.filter(query_string)
 
@@ -62,7 +65,8 @@ class ClientHotelDetailView(ClientMixin, View):
         try:
             hotel = Hotel.objects.get(id=self.kwargs.get("pk"))
             context["hotel"] = hotel
-            context["total_bookings"] = RoomBooking.objects.filter(hotel_room__hotel=hotel, booking_status="Confirmed")
+            context["total_bookings"] = RoomBooking.objects.filter(
+                hotel_room__hotel=hotel, booking_status="Confirmed")
         except Exception as e:
             print(e)
             messages.error(request, "Hotel not found..")
@@ -258,11 +262,11 @@ class KhaltiVerifyView(CustomerRequiredMixin, ClientMixin, View):
             payment_method = booking.payment_method
             url = payment_method.payment_verify_url
             payload = {
-            "token": request.POST.get("token"),
-            "amount": request.POST.get("amount")
+                "token": request.POST.get("token"),
+                "amount": request.POST.get("amount")
             }
             headers = {
-            "Authorization": f"Key {payment_method.test_secret_key}"
+                "Authorization": f"Key {payment_method.test_secret_key}"
             }
 
             response = requests.post(url, payload, headers=headers)
@@ -272,7 +276,8 @@ class KhaltiVerifyView(CustomerRequiredMixin, ClientMixin, View):
                 booking.paid_date = timezone.localtime(timezone.now())
                 booking.save()
                 del request.session["booking_id"]
-                messages.success(request, "Booking success. Thanks for booking our room.")
+                messages.success(
+                    request, "Booking success. Thanks for booking our room.")
                 return JsonResponse({"status": "success", "return_url": booking.get_absolute_url + "?b=s"})
             else:
                 return JsonResponse({"status": "error", "return_url": payment_method.khalti_verify})
@@ -283,22 +288,49 @@ class KhaltiVerifyView(CustomerRequiredMixin, ClientMixin, View):
             return redirect("hbsapp:clienthome")
 
 
-
 class CustomerProfileView(CustomerRequiredMixin, ClientMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.context
         customer = request.user.customer
         context["customer"] = customer
-        context["allbookings"] = RoomBooking.objects.filter(customer=customer).order_by("-id")
+        context["allbookings"] = RoomBooking.objects.filter(
+            customer=customer).order_by("-id")
         return render(request, "clienttemplates/customerprofile.html", context)
 
 
+class CustomerProfileUpdateView(CustomerRequiredMixin, ClientMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        customer = request.user.customer
+        context["customer"] = customer
+        initial = {
+            "first_name": customer.user.first_name,
+            "last_name": customer.user.last_name,
+        }
+        context["customer_form"] = CustomerProfileForm(
+            instance=customer, initial=initial)
+        return render(request, "clienttemplates/customerprofileupdate.html", context)
+
+    def post(self, request, *args, **kwargs):
+        customer = request.user.customer
+        customer_form = CustomerProfileForm(request.POST, request.FILES, instance=customer)
+        if customer_form.is_valid():
+            customer = customer_form.save()
+            user = request.user
+            user.first_name = customer_form.cleaned_data.get("first_name")
+            user.last_name = customer_form.cleaned_data.get("last_name")
+            user.save()
+            messages.success(request, "Customer profile updated successfully.")
+        else:
+            messages.errors(request, "Something went wrong.")
+        return redirect("hbsapp:customerprofile")
 class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
 
     def get(self, request, *args, **kwargs):
         context = self.context
         try:
-            context["booking"] = RoomBooking.objects.get(id=self.kwargs.get("pk"), customer=request.user.customer)
+            context["booking"] = RoomBooking.objects.get(
+                id=self.kwargs.get("pk"), customer=request.user.customer)
             return render(request, "clienttemplates/customerbookingdetail.html", context)
         except Exception as e:
             messages.error(request, "You are not allowed to view this page.")
@@ -369,16 +401,24 @@ class AdminHomeView(AdminRequiredMixin, View):
         all_bookings = RoomBooking.objects.all()
 
         context["all_bookings"] = all_bookings
-        context["confirmed_bookings"] = all_bookings.filter(booking_status="Confirmed")
-        context["booking_requests"] = all_bookings.filter(booking_status="Pending")
-        context["served_peoples"] = all_bookings.aggregate(total=Sum("total_persons")).get("total") or 0
+        context["confirmed_bookings"] = all_bookings.filter(
+            booking_status="Confirmed")
+        context["booking_requests"] = all_bookings.filter(
+            booking_status="Pending")
+        context["served_peoples"] = all_bookings.aggregate(
+            total=Sum("total_persons")).get("total") or 0
         context["registered_customers"] = Customer.objects.all().count()
 
-        context["rejected_amount"] = all_bookings.filter(booking_status="Rejected").aggregate(total=Sum("amount")).get("total") or 0
-        context["confirmed_amount"] = all_bookings.filter(booking_status="Confirmed").aggregate(total=Sum("amount")).get("total") or 0
-        context["collected_amount"] = all_bookings.filter(booking_status="Confirmed", payment_status=True).aggregate(total=Sum("amount")).get("total") or 0
-        context["pending_amount"] = all_bookings.filter(booking_status__in=["Confirmed", "Pending"], payment_status=False).aggregate(total=Sum("amount")).get("total") or 0
-        context["epayment"] = all_bookings.exclude(payment_method__name="Pay at Hotel").filter(booking_status__in=["Confirmed", "Pending"], payment_status=True).aggregate(total=Sum("amount")).get("total") or 0
+        context["rejected_amount"] = all_bookings.filter(
+            booking_status="Rejected").aggregate(total=Sum("amount")).get("total") or 0
+        context["confirmed_amount"] = all_bookings.filter(
+            booking_status="Confirmed").aggregate(total=Sum("amount")).get("total") or 0
+        context["collected_amount"] = all_bookings.filter(
+            booking_status="Confirmed", payment_status=True).aggregate(total=Sum("amount")).get("total") or 0
+        context["pending_amount"] = all_bookings.filter(booking_status__in=[
+                                                        "Confirmed", "Pending"], payment_status=False).aggregate(total=Sum("amount")).get("total") or 0
+        context["epayment"] = all_bookings.exclude(payment_method__name="Pay at Hotel").filter(booking_status__in=[
+            "Confirmed", "Pending"], payment_status=True).aggregate(total=Sum("amount")).get("total") or 0
         return render(request, "admintemplates/adminhome.html", context)
 
 
@@ -457,11 +497,32 @@ class AdminRoomCreateView(AdminRequiredMixin, View):
         return redirect("hbsapp:adminroomlist")
 
 
+class AdminRoomUpdateView(AdminRequiredMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        room = HotelRoom.objects.get(id=self.kwargs.get("pk"))
+        context["room"] = room
+        context["roomform"] = HotelRoomUpdateForm(instance=room)
+        return render(request, "admintemplates/adminroomupdate.html", context)
+
+    def post(self, request, *args, **kwargs):
+        hotel_room = HotelRoom.objects.get(id=self.kwargs.get("pk"))
+        room_form = HotelRoomUpdateForm(
+            request.POST, request.FILES, instance=hotel_room)
+        if room_form.is_valid():
+            room_form.save()
+        else:
+            print(room_form.errors)
+            messages.error(request, "Something went wrong")
+        return redirect("hbsapp:adminroomlist")
+
+
 class AdminBookingListView(AdminRequiredMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.context
         allbookings = RoomBooking.objects.all()
-        context["pending_bookings"] = allbookings.filter(booking_status="Pending").count()
+        context["pending_bookings"] = allbookings.filter(
+            booking_status="Pending").count()
         context["allbookings"] = allbookings
         return render(request, "admintemplates/adminbookinglist.html", context)
 
@@ -507,9 +568,9 @@ class AdminBookingDetailView(AdminRequiredMixin, View):
         if status == "error":
             messages.error(request, "Something went wrong..")
         else:
-            messages.success(request, "Booking Information updated successfully...")
+            messages.success(
+                request, "Booking Information updated successfully...")
         return JsonResponse(resp)
-
 
 
 class AdminMessageListView(AdminRequiredMixin, View):
@@ -532,7 +593,8 @@ class AdminCustomerDetailView(AdminRequiredMixin, View):
         try:
             customer = Customer.objects.get(id=self.kwargs.get("pk"))
             context["customer"] = customer
-            context["allbookings"] = RoomBooking.objects.filter(customer=customer)
+            context["allbookings"] = RoomBooking.objects.filter(
+                customer=customer)
         except Exception as e:
             print(e)
             messages.error(request, "Customer not found...")
