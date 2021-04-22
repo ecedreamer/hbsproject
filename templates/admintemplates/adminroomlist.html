@@ -35,7 +35,7 @@
                     <tr>
                         <td>{{forloop.counter}}</td>
                         <td><a class="room-img"  data-bs-toggle="modal" data-bs-target="#imgModal" href="{{room.image.url}}">{{room.room_code}}</a></td>
-                        <td>{{room.room_type}}</td>
+                        <td>{{room.room_type}}(max {{room.maximum_capacity}} persons)</td>
                         <td>{{room.hotel}}</td>
                         <td>{{room.price}}</td>
                         <td>{{room.view_count}}</td>

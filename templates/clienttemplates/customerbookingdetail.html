@@ -1,6 +1,6 @@
 {% extends 'clienttemplates/clientbase.html' %}
 
-{% block title %}Booking Success {% endblock %}
+{% block title %}Booking Detail {% endblock %}
 {% load humanize %}
 
 {% block content %}
@@ -24,15 +24,35 @@
                         <tbody>
                             <tr>
                                 <th>Hotel Room: </th>
-                                <td>{{booking.hotel_room.room_type}} ({{booking.hotel_room.room_code}}) at {{booking.hotel_room.hotel}} </td>
+                                <td>{{booking.hotel_room.room_type}} ({{booking.hotel_room.room_code}}) at
+                                    {{booking.hotel_room.hotel}} </td>
                             </tr>
+                            <tr>
+                                <th>Booking Status: </th>
+                                <td>
+                                    {% if bookign.booking_status == "Pending" %}
+                                    <span class="badge bg-info">{{booking.booking_status}}</span>
+                                    {% elif booking.booking_status == "Confirmed" %}
+                                    <span class="badge bg-success">{{booking.booking_status}}</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">{{booking.booking_status}}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% if booking.booking_status == "Rejected" %}
+                            <tr>
+                                <th>Remarks: </th>
+                                <td>{{booking.status_remarks}}</td>
+                            </tr>
+                            {% endif %}
                             <tr>
                                 <th>Location: </th>
                                 <td>{{booking.hotel_room.hotel.address}}</td>
                             </tr>
                             <tr>
                                 <th>Booked on </th>
-                                <td>{{booking.created_at}} | <span class="text-info">{{booking.created_at|timesince}} ago</span></td>
+                                <td>{{booking.created_at}} | <span class="text-info">{{booking.created_at|timesince}}
+                                        ago</span></td>
                             </tr>
                             <tr>
                                 <th>Booking for: </th>
@@ -40,7 +60,7 @@
                             </tr>
                             <tr>
                                 <th>Room Rate: </th>
-                                <td>Rs. {{booking.hotel_room.price|intcomma}}/- per person per day.</td>
+                                <td>Rs. {{booking.hotel_room.price|intcomma}}/- per day.</td>
                             </tr>
                             <tr>
                                 <th>Total Persons: </th>
@@ -50,7 +70,16 @@
                                 <th>Total duration: </th>
                                 <td>{{booking.booking_duration}} days</td>
                             </tr>
-                            
+                            {% if booking.customer_checked_in %}
+                            <tr>
+                                <th>Checked In Time: </th>
+                                <td>{{booking.checkin_time}}</td>
+                            </tr>
+                            <tr>
+                                <th>Checked Out Time: </th>
+                                <td>{{booking.checkout_time}}</td>
+                            </tr>
+                            {% endif %}
                         </tbody>
                         <tfoot class="bg-dark text-white">
                             <tr>
@@ -67,6 +96,13 @@
                             </tr>
                         </tfoot>
                     </table>
+                    {% if booking.booking_status != "Rejected" and booking.customer_checked_in is False %}
+                    <div class="row">
+                        <div class="col-md-12">
+                            <button class="btn btn-danger" id="cancel-btn">Cancel Booking</button>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -74,3 +110,26 @@
 </div>
 {% endblock %}
 
+{% block js %}
+<script>
+    var btn = document.getElementById('cancel-btn')
+    btn.addEventListener("click", function (e) {
+        e.preventDefault()
+        var cnfrm = confirm("Are you sure to cancel this booking?")
+        if (cnfrm == true) {
+            var fd = new FormData();
+            fd.append("csrfmiddlewaretoken", "{{csrf_token}}")
+            fd.append("action", "cancel")
+            fetch('', {
+                method: "POST",
+                body: fd
+            }).then(response => response.json())
+                .then(json => {
+                    console.log(json)
+                    location.href = "";
+                })
+                .catch(err => console.log(err))
+        }
+    })
+</script>
+{% endblock %}

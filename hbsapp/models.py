@@ -40,14 +40,26 @@ ROOM_TYPE = (
     ("Queen", "Queen"),
     ("King", "King"),
 )
+
+CAPACITY = (
+    (1, 1),
+    (2, 2),
+    (3, 3),
+    (4, 4),
+    (5, 5),
+)
+
+
 class HotelRoom(TimeStamp):
     hotel = models.ForeignKey(Hotel, on_delete=models.RESTRICT)
     room_type = models.CharField(max_length=50, choices=ROOM_TYPE)
     room_code = models.CharField(max_length=50)
     image = models.ImageField(upload_to="rooms")
     description = models.TextField()
+    marked_price = models.PositiveIntegerField(null=True, blank=True)
     price = models.PositiveIntegerField()
     view_count = models.BigIntegerField(default=0)
+    maximum_capacity = models.PositiveIntegerField(default=2, choices=CAPACITY)
 
     def __str__(self):
         return self.room_code
@@ -101,7 +113,7 @@ class RoomBooking(TimeStamp):
     hotel_room = models.ForeignKey(HotelRoom, on_delete=models.RESTRICT)
     customer = models.ForeignKey(Customer, on_delete=models.RESTRICT)
 
-    total_persons = models.PositiveIntegerField(default=1)
+    total_persons = models.PositiveIntegerField(default=1, choices=CAPACITY)
     booking_starts = models.DateField()
     booking_ends = models.DateField()
     message = models.TextField(null=True, blank=True)

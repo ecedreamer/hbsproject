@@ -39,8 +39,11 @@
                             <div class="card p-2 item" style="cursor: pointer;" data-url="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}">
                                 <img src="{{room.image.url}}" class="img-fluid" style="height: 200px; object-fit: contain;" alt="">
                                 <p style="font-size: 14px;">Hotel: {{room.hotel.name}}({{room.hotel.address}})</p>
-                                <p style="font-size: 14px;">Price: {{room.price}}/Day | Room Type: {{room.room_type}}</p>
-                                <a href="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}" class="text-end">Book Now</a>
+                                <p style="font-size: 14px;">Price: {% if room.marked_price %}<s>Rs. {{room.marked_price}}/-</s>{% endif %} Rs. {{room.price}}/Day
+                                </p>
+                                Room Type: {{room.room_type}} (Max {{room.maximum_capacity}} persons)
+                                <a href="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}"
+                                    class="text-end">Book Now</a>
                             </div>
                         </div>
                         {% endfor %}

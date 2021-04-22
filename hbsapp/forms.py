@@ -91,11 +91,12 @@ class CustomerProfileForm(forms.ModelForm):
 
 
 class RoomBookingForm(forms.ModelForm):
+
     class Meta:
         model = RoomBooking
         fields = ["total_persons", "booking_starts", "booking_ends", "message", "payment_method"]
         widgets = {
-            "total_persons": forms.NumberInput(attrs={
+            "total_persons": forms.Select(attrs={
                 "class": "form-control"
             }),
             "booking_starts": forms.DateTimeInput(attrs={
@@ -141,7 +142,7 @@ class HotelForm(forms.ModelForm):
 class HotelRoomForm(forms.ModelForm):
     class Meta:
         model = HotelRoom
-        fields = ["hotel", "room_type", "room_code", "image", "description", "price"]
+        fields = ["hotel", "room_type", "room_code", "image", "description", "marked_price", "price", "maximum_capacity"]
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -152,7 +153,7 @@ class HotelRoomForm(forms.ModelForm):
 class HotelRoomUpdateForm(forms.ModelForm):
     class Meta:
         model = HotelRoom
-        fields = ["hotel", "room_type", "room_code", "image", "description", "price"]
+        fields = ["hotel", "room_type", "room_code", "image", "description", "marked_price", "price", "maximum_capacity"]
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

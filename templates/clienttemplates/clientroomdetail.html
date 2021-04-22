@@ -43,7 +43,7 @@
                                     </tr>
                                     <tr>
                                         <th>Price: </th>
-                                        <td>Rs. {{room.price}}/- per person per day</td>
+                                        <td>{% if room.marked_price %}<s>Rs. {{room.marked_price}}/-</s> {% endif %}Rs. {{room.price}}/-</td>
                                     </tr>
                                     <tr>
                                         <th>Total Views: </th>
@@ -69,7 +69,11 @@
                         <div class="row">
                             <div class="col-md-12">
                                 <label for="">Total Persons <span class="text-danger">*</span></label>
-                                {{roombookingform.total_persons}}
+                                <select name="total_persons" id="total_persons" class="form-control">
+                                    {% for option in options %}
+                                    <option value="{{option}}">{{option}}</option>
+                                    {% endfor %}
+                                </select>
                             </div>
                             <div class="col-md-6 mt-1">
                                 <label for="">Booking Date<span class="text-danger">*</span></label>

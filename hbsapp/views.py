@@ -80,6 +80,7 @@ class ClientRoomDetailView(ClientMixin, View):
         try:
             room = HotelRoom.objects.get(id=self.kwargs.get("pk"))
             context["room"] = room
+            context["options"] = [i+1 for i in range(room.maximum_capacity)]
             context["roombookingform"] = RoomBookingForm
             room.view_count += 1
             room.save()
@@ -222,8 +223,7 @@ class CustomerRoomBookingView(CustomerRequiredMixin, ClientMixin, View):
                 stay_days = booking_form.cleaned_data.get(
                     "booking_ends") - booking_form.cleaned_data.get("booking_starts")
                 stay_days = 1 if stay_days.days == 0 else stay_days.days
-                booking.amount = room.price * \
-                    booking_form.cleaned_data.get("total_persons") * stay_days
+                booking.amount = room.price * stay_days
                 booking.save()
                 if booking.payment_method.name in ["Khalti", "khalti"]:
                     request.session["booking_id"] = booking.id
@@ -319,12 +319,14 @@ class CustomerProfileUpdateView(CustomerRequiredMixin, ClientMixin, View):
             user = request.user
             user.first_name = customer_form.cleaned_data.get("first_name")
             user.last_name = customer_form.cleaned_data.get("last_name")
+            user.last_name = customer_form.cleaned_data.get("last_name")
             user.save()
             messages.success(request, "Customer profile updated successfully.")
         else:
             messages.errors(request, "Something went wrong.")
         return redirect("hbsapp:customerprofile")
         
+
 class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
 
     def get(self, request, *args, **kwargs):
@@ -336,6 +338,26 @@ class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
         except Exception as e:
             messages.error(request, "You are not allowed to view this page.")
             return redirect("hbsapp:clienthome")
+
+
+    def post(self, request, *args, **kwargs):
+        try:
+            if request.POST.get("action") == "cancel":
+                booking = RoomBooking.objects.get(
+                        id=self.kwargs.get("pk"), customer=request.user.customer)
+                booking.booking_status = "Rejected"
+                booking.status_remarks = "Canceled by customer on " + timezone.localtime(timezone.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                booking.save()
+                status = "success"
+                messages.success(request, "Your booking was canceled...")
+            else:
+                status = "failure"
+                messages.error(request, "Something went wrong...")
+        except Exception as e:
+            print(e)
+            status = "failure"
+            messages.error(request, "Something went wrong...")
+        return JsonResponse({"status": status})
 
 
 # admin views
@@ -543,6 +565,7 @@ class AdminBookingDetailView(AdminRequiredMixin, View):
             status = "success"
         elif action == "br":
             rb.booking_status = "Rejected"
+            rb.status_remarks = request.POST.get("remarks")
             rb.save()
             status = "success"
         elif action == "ci":

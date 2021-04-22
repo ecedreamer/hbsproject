@@ -12,7 +12,7 @@
                         <h5 class="card-title p-3">Profile Update Form </h5>
                     </div>
                     <div class="card-body">
-                        <form action="" method="POST">
+                        <form action="" method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
                             {{customer_form.as_p}}
                             <button class="btn btn-secondary">Save Changes</button>
