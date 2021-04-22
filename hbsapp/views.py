@@ -324,6 +324,7 @@ class CustomerProfileUpdateView(CustomerRequiredMixin, ClientMixin, View):
         else:
             messages.errors(request, "Something went wrong.")
         return redirect("hbsapp:customerprofile")
+        
 class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
 
     def get(self, request, *args, **kwargs):
