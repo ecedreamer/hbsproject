@@ -42,6 +42,10 @@
                                         <td>{{room.room_type}}</td>
                                     </tr>
                                     <tr>
+                                        <th>Maximum Capacity: </th>
+                                        <td>{{room.maximum_capacity}} persons</td>
+                                    </tr>
+                                    <tr>
                                         <th>Price: </th>
                                         <td>{% if room.marked_price %}<s>Rs. {{room.marked_price}}/-</s> {% endif %}Rs. {{room.price}}/-</td>
                                     </tr>
