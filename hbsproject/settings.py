@@ -146,5 +146,5 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
-EMAIL_HOST_USER = "noreply.necommerce@gmail.com"
-EMAIL_HOST_PASSWORD = "ece@9886D"
+EMAIL_HOST_USER = "youremail@gmail.com"
+EMAIL_HOST_PASSWORD = "yourpassword"
