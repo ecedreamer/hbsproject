@@ -12,7 +12,8 @@ urlpatterns = [
     path("room-<room_code>-<int:pk>/",
          ClientRoomDetailView.as_view(), name="clientroomdetail"),
     path("forgot-password/", ForgotPasswordView.as_view(), name="forgotpassword"),
-    path("reset-password/<email>/<token>/", ResetPasswordView.as_view(), name="resetpassword"),
+    path("reset-password/<email>/<token>/",
+         ResetPasswordView.as_view(), name="resetpassword"),
     # customer urls
     path("register/", CustomerRegisterView.as_view(), name="customerregister"),
     path("login/", CustomerLoginView.as_view(), name="customerlogin"),
@@ -32,6 +33,8 @@ urlpatterns = [
          CustomerProfileUpdateView.as_view(), name="customerprofileupdate"),
     path("customer-profile/booking-<int:pk>/",
          CustomerBookingDetailView.as_view(), name="customerbookingdetail"),
+    path("customer-profile/booking-<int:pk>-rate/",
+         CustomerRatingView.as_view(), name="customerrating"),
 
     # admin urls
     path("admin-login/", AdminLoginView.as_view(), name="adminlogin"),

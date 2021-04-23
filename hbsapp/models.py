@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.db.models import Avg
 from django.urls import reverse
 from django.db import models
 
@@ -68,6 +69,14 @@ class HotelRoom(TimeStamp):
     def get_absolute_url(self):
         return reverse("hbsapp:clientroomdetail",kwargs={"room_code": self.room_code, "pk": self.id})
 
+    @property
+    def get_rating(self):
+        bookings = self.roombooking_set.filter(rating__isnull=False)
+        if bookings.exists():
+            rating = bookings.aggregate(avg=Avg("rating"))["avg"]
+            return rating, bookings.count()
+        else:
+            return None
 
 
 class Customer(TimeStamp):
@@ -124,7 +133,7 @@ class RoomBooking(TimeStamp):
     customer_checked_in = models.BooleanField(default=False)
     checkin_time = models.DateTimeField(null=True, blank=True)
     checkout_time = models.DateTimeField(null=True, blank=True)
-    rating = models.PositiveIntegerField(default=5, choices=RATING)
+    rating = models.PositiveIntegerField(choices=RATING, null=True, blank=True)
     # payment information
     amount = models.PositiveIntegerField()
     payment_method = models.ForeignKey(PaymentMethod, on_delete=models.RESTRICT)
@@ -133,6 +142,13 @@ class RoomBooking(TimeStamp):
 
     def __str__(self):
         return self.hotel_room.room_code
+
+    @property
+    def get_review(self):
+        if self.rating:
+            return dict(RATING)[self.rating]
+        else:
+            return None
 
     @property
     def booking_duration(self):

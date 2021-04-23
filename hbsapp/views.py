@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login, logout
+from django.db.models import Sum, Count, Q, F, Avg
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
-from django.db.models import Sum, Count, Q
 from django.core.mail import send_mail
 from django.views.generic import View
 from django.http import JsonResponse
@@ -85,10 +85,13 @@ class ClientRoomDetailView(ClientMixin, View):
             context["room"] = room
             context["options"] = [i+1 for i in range(room.maximum_capacity)]
             context["roombookingform"] = RoomBookingForm
+            context["all_ratings"] = RoomBooking.objects.filter(hotel_room=room, rating__isnull=False)
+            context["most_rated_rooms"] = HotelRoom.objects.annotate(rating=Avg("roombooking__rating")).order_by("-rating")[:2]
             room.view_count += 1
             room.save()
             return render(request, "clienttemplates/clientroomdetail.html", context)
         except Exception as e:
+            print(e)
             messages.error(request, "Hotel not found.")
             return redirect("hbsapp:clienthome")
 
@@ -399,15 +402,21 @@ class CustomerProfileUpdateView(CustomerRequiredMixin, ClientMixin, View):
         return redirect("hbsapp:customerprofile")
 
 
+
+
 class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
 
     def get(self, request, *args, **kwargs):
         context = self.context
         try:
-            context["booking"] = RoomBooking.objects.get(
+            room_booking = RoomBooking.objects.get(
                 id=self.kwargs.get("pk"), customer=request.user.customer)
+            context["booking"] = room_booking
+            context["ratings"] = RATING
+            context["all_ratings"] = RoomBooking.objects.filter(hotel_room=room_booking.hotel_room, rating__isnull=False)
             return render(request, "clienttemplates/customerbookingdetail.html", context)
         except Exception as e:
+            print(e)
             messages.error(request, "You are not allowed to view this page.")
             return redirect("hbsapp:clienthome")
 
@@ -432,6 +441,16 @@ class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
             messages.error(request, "Something went wrong...")
         return JsonResponse({"status": status})
 
+
+
+class CustomerRatingView(CustomerRequiredMixin, ClientMixin, View):
+    def post(self, request, *args, **kwargs):
+        booking = RoomBooking.objects.get(id=self.kwargs.get("pk"))
+        rating = request.POST.get("c_rating")
+        booking.rating = rating
+        booking.save()
+        messages.success(request, "Thanks for providing your reviews to our room.")
+        return redirect("hbsapp:customerbookingdetail", booking.id)
 
 # admin views
 

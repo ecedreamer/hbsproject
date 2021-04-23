@@ -27,7 +27,9 @@
                                 <tbody>
                                     <tr>
                                         <th>Hotel: </th>
-                                        <td><a href="{% url 'hbsapp:clienthoteldetail' room.hotel.id %}">{{room.hotel}}</a></td>
+                                        <td><a
+                                                href="{% url 'hbsapp:clienthoteldetail' room.hotel.id %}">{{room.hotel}}</a>
+                                        </td>
                                     </tr>
                                     <tr>
                                         <th>Location: </th>
@@ -47,7 +49,8 @@
                                     </tr>
                                     <tr>
                                         <th>Price: </th>
-                                        <td>{% if room.marked_price %}<s>Rs. {{room.marked_price}}/-</s> {% endif %}Rs. {{room.price}}/-</td>
+                                        <td>{% if room.marked_price %}<s>Rs. {{room.marked_price}}/-</s> {% endif %}Rs.
+                                            {{room.price}}/-</td>
                                     </tr>
                                     <tr>
                                         <th>Total Views: </th>
@@ -60,15 +63,48 @@
                             {{room.description|safe}}
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5>Overall Reviews and Ratings on this Room</h5>
+                                    {% if room.get_rating %}
+                                    <p> <span
+                                            style="background-color: gold; color: rgb(34, 4, 4); padding: 3px;">{{room.get_rating.0}}
+                                            stars</span> | {{room.get_rating.1}} reviews
+                                    </p>
+                                    {% else %}
+                                    <p>No reviews yet</p>
+                                    {% endif %}
+                                </div>
+                                <div class="card-body">
+                                    {% for rating in all_ratings %}
+                                    <div class="row border mb-2 p-2">
+                                        <div class="col-md-5">
+                                            <p>{{rating.customer.user.username}}</p>
+                                            <span
+                                                style="background-color: gold; color: rgb(34, 4, 4); padding: 3px;">{{rating.rating}}
+                                                stars</span>
+                                        </div>
+                                        <div class="col-md-7">
+                                            <p>{{rating.get_review}}</p>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="col-md-4 bg-info p-3">
+                <div class="col-md-4 ">
                     {% if request.user.customer %}
-                    <h6 class="text-white">Room Booking Form <br><small
-                            style="font-size: 11px; color: rgb(143, 3, 3);">fields marked with * are required
-                            fields.</small></h6>
-                    <hr>
-                    <form action="{% url 'hbsapp:customerroombooking' room.id %}" method="POST">
+
+                    <form class="bg-info p-3 mb-3" action="{% url 'hbsapp:customerroombooking' room.id %}" method="POST">
+                        <h6 class="text-white">Room Booking Form <br><small
+                                style="font-size: 11px; color: rgb(143, 3, 3);">fields marked with * are required
+                                fields.</small></h6>
+                        <hr>
                         {% csrf_token %}
                         <div class="row">
                             <div class="col-md-12">
@@ -88,7 +124,7 @@
                                 {{roombookingform.booking_ends}}
                             </div>
                             <div class="col-md-12 mt-1">
-                                <label for=""></label>
+                                <label for="">Message</label>
                                 {{roombookingform.message}}
                             </div>
                             <div class="col-md-12 mt-1">
@@ -100,7 +136,7 @@
                         <button id="book-btn" class="btn btn-outline-primary w-100">Book this Room</button>
                     </form>
                     {% else %}
-                    <div class="text-center">
+                    <div class="text-center mb-3">
 
                         <h5>You need to login to book room.</h5>
                         <p>If you already have an account</p>
@@ -111,6 +147,28 @@
                             href="{% url 'hbsapp:customerregister' %}?next={{request.path}}">Register as a Customer</a>
                     </div>
                     {% endif %}
+                    <hr>
+                    <h5 style="background-color: rgb(30, 184, 143); color: white;padding: 10px 10px;">TOP Rated Hotel Rooms</h5>
+                    <hr>
+                    {% for room in most_rated_rooms %}
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="card p-2 item" style="cursor: pointer; text-align: center;"
+                                data-url="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}">
+                                <img src="{{room.image.url}}" class="img-fluid"
+                                    style="height: 200px; object-fit: contain;" alt="">
+                                <p style="font-size: 14px; color: rgb(46, 179, 172); font-weight: bold;margin-bottom: 0;">#{{room.room_code}}-{{room.hotel.name}}({{room.hotel.address}})</p><hr>
+                                <p style="font-size: 14px;margin-bottom: 0;">{{room.room_type}} (Max {{room.maximum_capacity}} persons)</p>
+                                <p style="font-size: 14px;margin-bottom: 0;">Price: {% if room.marked_price %}<s>Rs. {{room.marked_price}}/-</s>{% endif %} Rs. {{room.price}}/Day</p>
+                                <!-- <a href="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}"
+                                    class="text-end">Book Now</a> -->
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div>
+
                 </div>
             </div>
         </div>
@@ -169,9 +227,17 @@
                 icon: 'error',
                 confirmButtonText: 'Sorry'
             })
-        }else{
+        } else {
             document.getElementById("book-btn").removeAttribute("disabled")
         }
     }
+</script>
+<script>
+    const items = document.getElementsByClassName("item");
+    Array.from(items).forEach(element => {
+        element.addEventListener("click", function (e) {
+            location.href = this.getAttribute("data-url")
+        })
+    });
 </script>
 {% endblock %}

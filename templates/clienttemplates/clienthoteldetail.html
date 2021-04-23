@@ -36,14 +36,15 @@
                     <div class="row">
                         {% for room in hotel.hotelroom_set.all %}
                         <div class="col-md-3 mb-3">
-                            <div class="card p-2 item" style="cursor: pointer;" data-url="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}">
-                                <img src="{{room.image.url}}" class="img-fluid" style="height: 200px; object-fit: contain;" alt="">
-                                <p style="font-size: 14px;">Hotel: {{room.hotel.name}}({{room.hotel.address}})</p>
-                                <p style="font-size: 14px;">Price: {% if room.marked_price %}<s>Rs. {{room.marked_price}}/-</s>{% endif %} Rs. {{room.price}}/Day
-                                </p>
-                                Room Type: {{room.room_type}} (Max {{room.maximum_capacity}} persons)
-                                <a href="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}"
-                                    class="text-end">Book Now</a>
+                            <div class="card p-2 item" style="cursor: pointer; text-align: center;"
+                                data-url="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}">
+                                <img src="{{room.image.url}}" class="img-fluid"
+                                    style="height: 200px; object-fit: contain;" alt="">
+                                <p style="font-size: 14px; color: rgb(46, 179, 172); font-weight: bold;margin-bottom: 0;">#{{room.room_code}}-{{room.hotel.name}}({{room.hotel.address}})</p><hr>
+                                <p style="font-size: 14px;margin-bottom: 0;">{{room.room_type}} (Max {{room.maximum_capacity}} persons)</p>
+                                <p style="font-size: 14px;margin-bottom: 0;">Price: {% if room.marked_price %}<s>Rs. {{room.marked_price}}/-</s>{% endif %} Rs. {{room.price}}/Day</p>
+                                <!-- <a href="{% url 'hbsapp:clientroomdetail' room.room_code room.id %}"
+                                    class="text-end">Book Now</a> -->
                             </div>
                         </div>
                         {% endfor %}
