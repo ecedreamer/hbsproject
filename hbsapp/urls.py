@@ -11,6 +11,8 @@ urlpatterns = [
          ClientHotelDetailView.as_view(), name="clienthoteldetail"),
     path("room-<room_code>-<int:pk>/",
          ClientRoomDetailView.as_view(), name="clientroomdetail"),
+    path("forgot-password/", ForgotPasswordView.as_view(), name="forgotpassword"),
+    path("reset-password/<email>/<token>/", ResetPasswordView.as_view(), name="resetpassword"),
     # customer urls
     path("register/", CustomerRegisterView.as_view(), name="customerregister"),
     path("login/", CustomerLoginView.as_view(), name="customerlogin"),

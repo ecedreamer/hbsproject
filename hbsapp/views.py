@@ -2,11 +2,14 @@ from django.contrib.auth import authenticate, login, logout
 from django.shortcuts import render, redirect
 from django.urls import reverse, reverse_lazy
 from django.db.models import Sum, Count, Q
+from django.core.mail import send_mail
 from django.views.generic import View
 from django.http import JsonResponse
 from django.contrib import messages
 from django.utils import timezone
+from django.conf import settings
 from datetime import date
+from .utils import *
 from .forms import *
 import requests
 
@@ -88,6 +91,74 @@ class ClientRoomDetailView(ClientMixin, View):
         except Exception as e:
             messages.error(request, "Hotel not found.")
             return redirect("hbsapp:clienthome")
+
+
+class ForgotPasswordView(ClientMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        return render(request, "clienttemplates/forgotpassword.html", context)
+
+    def post(self, request, *args, **kwargs):
+        email = request.POST.get("email")
+        if User.objects.filter(username=email).exists():
+            user = User.objects.get(username=email)
+            url = self.request.META['HTTP_HOST']
+            text_content = 'Please Click the link below to reset your password. '
+            html_content = url + "/reset-password/" + email + \
+                "/" + password_reset_token.make_token(user) + "/"
+            send_mail(
+                'Please click this Password Reset Link to reset your password.',
+                text_content + html_content,
+                settings.EMAIL_HOST_USER,
+                [email],
+                fail_silently=False,
+            )
+
+            status = "success"
+            message = "Reset link sent successfully"
+            messages.success(
+                request, "Password reset link has been sent to your email. Please check your email soon.")
+        else:
+            status = "failure"
+            message = "The user with this email doesnot exists.."
+        resp = {
+            "status": status,
+            "message": message
+        }
+        return JsonResponse(resp)
+
+
+class ResetPasswordView(ClientMixin, View):
+
+    def dispatch(self, request, *args, **kwargs):
+        email = self.kwargs.get("email")
+        user = User.objects.get(username=email)
+        token = self.kwargs.get("token")
+        if user is not None and password_reset_token.check_token(user, token):
+            pass
+        else:
+            messages.email(request, "Something went wrong. Please try again.")
+            return redirect(reverse("hbsapp:forgotpassword"))
+
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        return render(request, "clienttemplates/resetpassword.html", context)
+
+    def post(self, request, *args, **kwargs):
+        password = request.POST.get("password")
+        email = self.kwargs.get("email")
+        user = User.objects.get(username=email)
+        user.set_password(password)
+        user.save()
+        messages.success(request, "Your password has been reset successfully. Please login to continue.")
+        try:
+            user.customer
+            return redirect("hbsapp:customerlogin")
+        except Exception as e:
+            print(e)
+            return redirect("hbsapp:adminlogin")
 
 
 # customer views
@@ -313,7 +384,8 @@ class CustomerProfileUpdateView(CustomerRequiredMixin, ClientMixin, View):
 
     def post(self, request, *args, **kwargs):
         customer = request.user.customer
-        customer_form = CustomerProfileForm(request.POST, request.FILES, instance=customer)
+        customer_form = CustomerProfileForm(
+            request.POST, request.FILES, instance=customer)
         if customer_form.is_valid():
             customer = customer_form.save()
             user = request.user
@@ -325,7 +397,7 @@ class CustomerProfileUpdateView(CustomerRequiredMixin, ClientMixin, View):
         else:
             messages.errors(request, "Something went wrong.")
         return redirect("hbsapp:customerprofile")
-        
+
 
 class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
 
@@ -339,14 +411,15 @@ class CustomerBookingDetailView(CustomerRequiredMixin, ClientMixin, View):
             messages.error(request, "You are not allowed to view this page.")
             return redirect("hbsapp:clienthome")
 
-
     def post(self, request, *args, **kwargs):
         try:
             if request.POST.get("action") == "cancel":
                 booking = RoomBooking.objects.get(
-                        id=self.kwargs.get("pk"), customer=request.user.customer)
+                    id=self.kwargs.get("pk"), customer=request.user.customer)
                 booking.booking_status = "Rejected"
-                booking.status_remarks = "Canceled by customer on " + timezone.localtime(timezone.now()).strftime("%m/%d/%Y, %H:%M:%S")
+                booking.status_remarks = "Canceled by customer on " + \
+                    timezone.localtime(timezone.now()).strftime(
+                        "%m/%d/%Y, %H:%M:%S")
                 booking.save()
                 status = "success"
                 messages.success(request, "Your booking was canceled...")
