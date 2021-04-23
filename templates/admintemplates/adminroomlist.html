@@ -34,7 +34,7 @@
                     {% for room in roomlist %}
                     <tr>
                         <td>{{forloop.counter}}</td>
-                        <td><a class="room-img"  data-bs-toggle="modal" data-bs-target="#imgModal" href="{{room.image.url}}">{{room.room_code}}</a></td>
+                        <td><a class="room-img"  data-bs-toggle="modal" data-bs-target="#imgModal" href="{{room.image.url}}">{{room.room_code}}( {% if room.get_rating %}{{room.get_rating.0}} stars{% else %}No reviews yet{% endif %})</a></td>
                         <td>{{room.room_type}}(max {{room.maximum_capacity}} persons)</td>
                         <td>{{room.hotel}}</td>
                         <td>{{room.price}}</td>

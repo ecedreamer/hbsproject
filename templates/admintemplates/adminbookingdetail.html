@@ -155,6 +155,12 @@
                                                 <th>Total Persons </th>
                                                 <td>{{booking.total_persons}}</td>
                                             </tr>
+                                            {% if booking.rating %}
+                                            <tr>
+                                                <th>Reviews/Rating </th>
+                                                <td>{{booking.get_review}}<br><span style="background-color: gold; color: rgb(34, 4, 4); padding: 3px;">{{booking.rating}} stars</span></td>
+                                            </tr>
+                                            {% endif %}
                                         </tbody>
                                     </table>
                                 </div>
