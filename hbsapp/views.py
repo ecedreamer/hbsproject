@@ -372,6 +372,28 @@ class CustomerProfileView(CustomerRequiredMixin, ClientMixin, View):
         return render(request, "clienttemplates/customerprofile.html", context)
 
 
+class CustomerPasswordChangeView(CustomerRequiredMixin, ClientMixin, View):
+    def get(self, request, *args, **kwargs):
+        context = self.context
+        context["password_change_form"] = PasswordChangeForm
+        return render(request, "clienttemplates/customerpasswordchange.html", context)
+
+    def post(self, request, *args, **kwargs):
+        pcf = PasswordChangeForm(request.POST)
+        if pcf.is_valid():
+            password = pcf.cleaned_data.get("password")
+            confirm_password = pcf.cleaned_data.get("confirm_password")
+            if password == confirm_password:
+                user = request.user
+                user.set_password(password)
+                user.save()
+                messages.success(request, "Password changed successfully. Please login again.")
+            else:
+                messages.error(request, "Your passwords did not match.")
+        else:
+            messages.error(request, "Something went wrong..")
+        return redirect("hbsapp:customerprofile")
+
 class CustomerProfileUpdateView(CustomerRequiredMixin, ClientMixin, View):
     def get(self, request, *args, **kwargs):
         context = self.context

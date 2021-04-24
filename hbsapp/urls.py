@@ -29,6 +29,8 @@ urlpatterns = [
 
     path("customer-profile/",
          CustomerProfileView.as_view(), name="customerprofile"),
+    path("customer-profile/password-change/",
+         CustomerPasswordChangeView.as_view(), name="customerpasswordchange"),
     path("customer-profile-update/",
          CustomerProfileUpdateView.as_view(), name="customerprofileupdate"),
     path("customer-profile/booking-<int:pk>/",

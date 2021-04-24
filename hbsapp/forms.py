@@ -90,6 +90,19 @@ class CustomerProfileForm(forms.ModelForm):
         }
 
 
+class PasswordChangeForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput(attrs={
+        "class": "form-control",
+        "placeholder": "Enter new passowrd...",
+        "onkeyup": "checkPasswords()"
+    }))
+    confirm_password = forms.CharField(widget=forms.PasswordInput(attrs={
+        "class": "form-control",
+        "placeholder": "Confirm new passowrd...",
+        "onkeyup": "checkPasswords()"
+    }))
+
+
 class RoomBookingForm(forms.ModelForm):
 
     class Meta:

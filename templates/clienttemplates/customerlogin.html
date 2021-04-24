@@ -18,7 +18,7 @@
                             <button class="btn btn-secondary">Login</button>
                         </form>
                         <hr>
-                        <p>Forgot your password? <a href="{% url 'hbsapp:forgotpassword' %}"> Get Reset Link</a></p>
+                        <!-- <p>Forgot your password? <a href="{% url 'hbsapp:forgotpassword' %}"> Get Reset Link</a></p> -->
                         <p>Don't have an account? <a href="{% url 'hbsapp:customerregister' %}{% if request.GET.next %}?next={{request.GET.next}}{% endif %}"> Register as a Customer</a></p>
                     </div>
                 </div>
